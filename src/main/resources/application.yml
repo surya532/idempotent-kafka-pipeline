@@ -1,0 +1,32 @@
+app:
+  topic: payments.events
+  dlt-topic: payments.events.DLT
+  partitions: 3
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pipeline
+    username: pipeline
+    password: pipeline
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+    consumer:
+      group-id: payments-processor
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      concurrency: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics
