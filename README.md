@@ -1,3 +1,5 @@
+![ci](https://github.com/surya532/idempotent-kafka-pipeline/actions/workflows/ci.yml/badge.svg)
+
 # idempotent-kafka-pipeline
 
 An event-driven payment-processing pipeline on **Java 17, Spring Boot, Apache Kafka, and PostgreSQL** that delivers **exactly-once effects on top of at-least-once delivery**, with retries, a dead-letter topic, and Prometheus metrics.
