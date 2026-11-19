@@ -81,8 +81,7 @@ mvn verify      # unit tests for idempotency and parsing
 ```
 
 ## Benchmarks
-Run `scripts/load_test.sh` on your machine and record the result here with your hardware, e.g.
-`10,000 events in X s (~Y events/sec) on <machine>, single broker, local`. Local numbers are for comparison between changes, not production capacity claims.
+Not yet benchmarked. Run scripts/load_test.sh to measure on your own hardware.
 
 ## Next steps
 - Testcontainers integration test (real Kafka + Postgres) proving no duplicate effects under consumer restarts
