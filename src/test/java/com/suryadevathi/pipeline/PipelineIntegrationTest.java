@@ -33,7 +33,7 @@ import org.testcontainers.utility.DockerImageName;
  * Skipped automatically when Docker is not available.
  */
 @SpringBootTest
-@Testcontainers(disabledWithoutDocker = true)
+@Testcontainers
 class PipelineIntegrationTest {
 
     @Container
