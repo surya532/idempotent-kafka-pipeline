@@ -108,7 +108,7 @@ The last scenario checks the transactional design: the dedup insert and the bala
 - No load or soak testing in CI (see Benchmarks).
 
 ## Benchmarks
-Not yet benchmarked. `scripts/load_test.sh` measures end-to-end throughput on your own hardware:
+Not yet benchmarked. `scripts/load_test.sh` measures end-to-end throughput on the machine it runs on:
 
     scripts/load_test.sh 10000 1000
     
