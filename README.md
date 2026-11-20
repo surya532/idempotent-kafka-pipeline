@@ -1,6 +1,5 @@
-![ci](https://github.com/surya532/idempotent-kafka-pipeline/actions/workflows/ci.yml/badge.svg)
-
 # idempotent-kafka-pipeline
+![ci](https://github.com/surya532/idempotent-kafka-pipeline/actions/workflows/ci.yml/badge.svg)
 
 An event-driven payment-processing pipeline on **Java 17, Spring Boot, Apache Kafka, and PostgreSQL** that delivers **exactly-once effects on top of at-least-once delivery**, with retries, a dead-letter topic, and Prometheus metrics.
 
@@ -75,16 +74,47 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 ## Metrics
 `/actuator/prometheus` exposes `pipeline_events_processed_total`, `pipeline_events_duplicates_total`, `pipeline_events_dead_lettered_total`, plus Kafka client metrics from Micrometer (check for consumer lag metrics there). Prometheus UI: http://localhost:9090.
 
-## Test
+## Testing
+
 ```bash
-mvn verify   # unit tests plus Testcontainers integration tests (needs Docker)
+mvn verify      # unit tests + Testcontainers integration tests (requires Docker)
 ```
 
-## Benchmarks
-Not yet benchmarked. Run scripts/load_test.sh to measure on your own hardware.
+CI runs both layers on every push.
 
+### Unit tests (no infrastructure)
+The processing logic sits behind an `EventStore` interface, so it is tested with an in-memory fake:
+- A duplicate delivery has no second effect
+- Different events accumulate correctly
+- A failing event records nothing
+- Event parsing rejects malformed or incomplete messages
+
+### Integration tests (real Kafka + PostgreSQL via Testcontainers)
+Five scenarios run against real containers:
+
+| Scenario | What it asserts |
+|---|---|
+| Duplicate delivery | The same event sent 5 times changes the balance once. |
+| Bulk with replays | 200 unique events plus 100 replayed duplicates leave exactly 200 processed rows and the correct total balance. |
+| Consumer outage and restart | Events sent while the consumer is stopped, each sent twice, are applied once after restart. |
+| Malformed message | Unparseable JSON goes straight to `payments.events.DLT` without retries. |
+| Failing event | The event is retried with backoff, dead-lettered, and leaves no dedup row behind. |
+
+The last scenario checks the transactional design: the dedup insert and the balance update commit or roll back together, so a failed event never marks itself as processed.
+
+### What the tests do not cover
+- The restart test stops and restarts the listener containers. It simulates a consumer outage, not a process crash mid-message. The transaction boundary is what covers the crash case, and that is not tested by killing a process.
+- Single broker, replication factor 1. Broker failure is not tested.
+- No load or soak testing in CI (see Benchmarks).
+
+## Benchmarks
+Not yet benchmarked. `scripts/load_test.sh` measures end-to-end throughput on your own hardware:
+
+    scripts/load_test.sh 10000 1000
+    
 ## Next steps
-- Testcontainers integration test (real Kafka + Postgres) proving no duplicate effects under consumer restarts
+- Crash test: kill the app process mid-batch and assert no duplicate effects on recovery
 - DLT replay tool
-- Grafana dashboard
+- Grafana dashboard for the Prometheus metrics
 - Outbox pattern for the producer side
+- Cleanup job for the `processed_events` table
