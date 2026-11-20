@@ -77,7 +77,7 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 
 ## Test
 ```bash
-mvn verify      # unit tests for idempotency and parsing
+mvn verify   # unit tests plus Testcontainers integration tests (needs Docker)
 ```
 
 ## Benchmarks
